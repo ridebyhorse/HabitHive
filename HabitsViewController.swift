@@ -11,13 +11,14 @@ class HabitsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        view.backgroundColor = .systemBackground
+        
         let addHabitButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addHabitButtonTapped))
-        navigationController?.navigationBar.prefersLargeTitles = true
-        navigationItem.title = "Сегодня"
         addHabitButtonItem.tintColor = .accent
         navigationItem.rightBarButtonItem = addHabitButtonItem
-        view.backgroundColor = .sunset
+        navigationItem.title = "Сегодня"
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
     }
     
     @objc private func addHabitButtonTapped(_ sender: UIButton) {

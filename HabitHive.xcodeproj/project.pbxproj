@@ -44,10 +44,10 @@
 		CB06527C2B0144930096FEE5 = {
 			isa = PBXGroup;
 			children = (
-				CB2D88002B03A61E005C0AB5 /* Habit.swift */,
-				CB06529C2B02A9490096FEE5 /* HabitsStore.swift */,
 				CB2D87FC2B0391A4005C0AB5 /* HabitsViewController.swift */,
 				CB2D87FE2B0391FF005C0AB5 /* InfoViewController.swift */,
+				CB2D88002B03A61E005C0AB5 /* Habit.swift */,
+				CB06529C2B02A9490096FEE5 /* HabitsStore.swift */,
 				CB0652872B0144930096FEE5 /* HabitHive */,
 				CB0652862B0144930096FEE5 /* Products */,
 			);
@@ -297,6 +297,7 @@
 				INFOPLIST_FILE = HabitHive/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -327,6 +328,7 @@
 				INFOPLIST_FILE = HabitHive/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
