@@ -14,9 +14,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         window = UIWindow()
-        let vc = UIViewController()
-        vc.view.backgroundColor = .red
-        window?.rootViewController = vc
+        let tabBarController = UITabBarController()
+        let habitsNavigationViewController = UINavigationController(rootViewController: HabitsViewController())
+        let infoViewController = InfoViewController()
+        habitsNavigationViewController.tabBarItem.title = "Привычки"
+        habitsNavigationViewController.tabBarItem.image = UIImage(systemName: "rectangle.split.1x2.fill")
+        infoViewController.tabBarItem.title = "Информация"
+        infoViewController.tabBarItem.image = UIImage(systemName: "info.circle.fill")
+        
+        tabBarController.viewControllers = [habitsNavigationViewController, infoViewController]
+        
+        window?.rootViewController = tabBarController
         window?.makeKeyAndVisible()
         return true
     }
