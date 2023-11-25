@@ -7,7 +7,15 @@
 
 import UIKit
 
+protocol HabitTableViewCellDelegate: AnyObject {
+    func didTrackHabit()
+}
+
 class HabitTableViewCell: UITableViewCell {
+    
+    private var habitData: Habit!
+    
+    weak var delegate: HabitTableViewCellDelegate?
     
     private lazy var backgroundCellView: UIView = {
         let backgroundCellView = UIView()
@@ -21,7 +29,6 @@ class HabitTableViewCell: UITableViewCell {
         let nameLabel = UILabel()
         nameLabel.font = .systemFont(ofSize: 17, weight: .semibold)
         nameLabel.numberOfLines = 2
-        nameLabel.text = "Название привычки"
         
         return nameLabel
     }()
@@ -29,7 +36,6 @@ class HabitTableViewCell: UITableViewCell {
     private lazy var periodicityLabel: UILabel = {
         let periodicityLabel = UILabel()
         periodicityLabel.font = .systemFont(ofSize: 12, weight: .regular)
-        periodicityLabel.text = "Каждый день в "
         
         return periodicityLabel
     }()
@@ -37,17 +43,16 @@ class HabitTableViewCell: UITableViewCell {
     private lazy var counterLabel: UILabel = {
         let counterLabel = UILabel()
         counterLabel.font = .systemFont(ofSize: 13, weight: .regular)
-        counterLabel.text = "Счетчик: "
         
         return counterLabel
     }()
     
-    private lazy var checkBackgroundView: UIView = {
-        let checkBackgroundView = UIView()
-        checkBackgroundView.layer.borderWidth = 2
-        checkBackgroundView.backgroundColor = .systemGray2
+    private lazy var trackButton: UIButton = {
+        let trackButton = UIButton()
+        trackButton.layer.borderWidth = 2
+        trackButton.addTarget(self, action: #selector(trackButtonTapped), for: .touchUpInside)
         
-        return checkBackgroundView
+        return trackButton
     }()
     
     private lazy var checkImageView: UIImageView = {
@@ -57,6 +62,8 @@ class HabitTableViewCell: UITableViewCell {
         let combined = largeTitle.applying(black)
         checkImageView.image = UIImage(systemName: "checkmark", withConfiguration: combined)
         checkImageView.tintColor = .systemBackground
+        checkImageView.isUserInteractionEnabled = false
+        checkImageView.isHidden = true
         
         return checkImageView
     }()
@@ -65,12 +72,11 @@ class HabitTableViewCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         contentView.backgroundColor = .systemGray6
 
-        update()
         setup()
         layoutIfNeeded()
         
-        checkBackgroundView.layer.cornerRadius = checkBackgroundView.frame.width / 2
-        checkBackgroundView.clipsToBounds = true
+        trackButton.layer.cornerRadius = trackButton.frame.width / 2
+        trackButton.clipsToBounds = true
     }
     
     required init?(coder: NSCoder) {
@@ -82,8 +88,8 @@ class HabitTableViewCell: UITableViewCell {
         backgroundCellView.addSubview(nameLabel)
         backgroundCellView.addSubview(periodicityLabel)
         backgroundCellView.addSubview(counterLabel)
-        backgroundCellView.addSubview(checkBackgroundView)
-        checkBackgroundView.addSubview(checkImageView)
+        backgroundCellView.addSubview(trackButton)
+        trackButton.addSubview(checkImageView)
         
         backgroundCellView.translatesAutoresizingMaskIntoConstraints = false
         for view in backgroundCellView.subviews {
@@ -99,17 +105,17 @@ class HabitTableViewCell: UITableViewCell {
             backgroundCellView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             backgroundCellView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             backgroundCellView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
-            checkBackgroundView.widthAnchor.constraint(equalToConstant: 40),
-            checkBackgroundView.heightAnchor.constraint(equalTo: checkBackgroundView.widthAnchor),
-            checkBackgroundView.centerYAnchor.constraint(equalTo: backgroundCellView.centerYAnchor),
-            checkBackgroundView.trailingAnchor.constraint(equalTo: backgroundCellView.trailingAnchor, constant: -25),
-            checkImageView.topAnchor.constraint(equalTo: checkBackgroundView.topAnchor, constant: 9),
-            checkImageView.leadingAnchor.constraint(equalTo: checkBackgroundView.leadingAnchor, constant: 8),
-            checkImageView.trailingAnchor.constraint(equalTo: checkBackgroundView.trailingAnchor, constant: -8),
-            checkImageView.bottomAnchor.constraint(equalTo: checkBackgroundView.bottomAnchor, constant: -9),
+            trackButton.widthAnchor.constraint(equalToConstant: 40),
+            trackButton.heightAnchor.constraint(equalTo: trackButton.widthAnchor),
+            trackButton.centerYAnchor.constraint(equalTo: backgroundCellView.centerYAnchor),
+            trackButton.trailingAnchor.constraint(equalTo: backgroundCellView.trailingAnchor, constant: -25),
+            checkImageView.topAnchor.constraint(equalTo: trackButton.topAnchor, constant: 9),
+            checkImageView.leadingAnchor.constraint(equalTo: trackButton.leadingAnchor, constant: 8),
+            checkImageView.trailingAnchor.constraint(equalTo: trackButton.trailingAnchor, constant: -8),
+            checkImageView.bottomAnchor.constraint(equalTo: trackButton.bottomAnchor, constant: -9),
             nameLabel.topAnchor.constraint(equalTo: backgroundCellView.topAnchor, constant: 20),
             nameLabel.leadingAnchor.constraint(equalTo: backgroundCellView.leadingAnchor, constant: 20),
-            nameLabel.trailingAnchor.constraint(equalTo: checkBackgroundView.leadingAnchor, constant: -40),
+            nameLabel.trailingAnchor.constraint(equalTo: trackButton.leadingAnchor, constant: -40),
             periodicityLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
             periodicityLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             periodicityLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
@@ -121,8 +127,27 @@ class HabitTableViewCell: UITableViewCell {
         
     }
     
-    private func update() {
+    func update(habit: Habit) {
+        habitData = habit
+        nameLabel.text = habit.name
+        periodicityLabel.text = habit.dateString
+        counterLabel.text = "Счетчик: \(habit.trackDates.count)"
+        trackButton.layer.borderColor = habit.color.cgColor
+        if habit.isAlreadyTakenToday {
+            trackButton.backgroundColor = habit.color
+            checkImageView.isHidden = false
+        } else {
+            trackButton.backgroundColor = nil
+            checkImageView.isHidden = true
+        }
         
+    }
+    
+    @objc func trackButtonTapped(_ sender: UIButton) {
+        print("Track button tapped")
+        guard self.checkImageView.isHidden else { return }
+        HabitsStore.shared.track(habitData!)
+        delegate?.didTrackHabit()
     }
 
 }

@@ -36,8 +36,7 @@ class ProgressTableViewCell: UITableViewCell {
     }()
     
     private lazy var progressView: UIProgressView = {
-        let progressView = UIProgressView(progressViewStyle: .default)
-        progressView.progress = 0.3
+        let progressView = UIProgressView(progressViewStyle: .bar)
         
         return progressView
     }()
@@ -45,9 +44,9 @@ class ProgressTableViewCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         contentView.backgroundColor = .systemGray6
-
+        
+        update()
         setup()
-//        layoutIfNeeded()
         
     }
     
@@ -80,6 +79,12 @@ class ProgressTableViewCell: UITableViewCell {
             progressView.leadingAnchor.constraint(equalTo: motivatingLabel.leadingAnchor),
             progressView.trailingAnchor.constraint(equalTo: percentLabel.trailingAnchor)
         ])
+    }
+    
+    func update() {
+        let habitStore = HabitsStore.shared
+        percentLabel.text = "\(Int(habitStore.todayProgress * 100))%"
+        progressView.progress = habitStore.todayProgress
     }
     
 }
