@@ -7,7 +7,7 @@
 
 import UIKit
 
-class HabitsViewController: UIViewController {
+class HabitsViewController: UIViewController, HabitViewControllerDelegate, HabitTableViewCellDelegate {
     
     fileprivate enum CellReuseIdentifiers: String {
         case progress = "ProgressReuse"
@@ -19,6 +19,14 @@ class HabitsViewController: UIViewController {
         
         return tableView
     }()
+    
+    func didCreateNewHabit() {
+        tableView.reloadData()
+    }
+    
+    func didTrackHabit() {
+        tableView.reloadData()
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,6 +52,7 @@ class HabitsViewController: UIViewController {
         
         tableView.register(ProgressTableViewCell.self, forCellReuseIdentifier: CellReuseIdentifiers.progress.rawValue)
         tableView.register(HabitTableViewCell.self, forCellReuseIdentifier: CellReuseIdentifiers.habit.rawValue)
+        tableView.backgroundColor = .systemGray6
         tableView.delegate = self
         tableView.dataSource = self
         tableView.separatorStyle = .none
@@ -52,27 +61,35 @@ class HabitsViewController: UIViewController {
     @objc private func addHabitButtonTapped(_ sender: UIButton) {
 
         print("Add habit button tapped")
-        let habitViewController = UINavigationController(rootViewController: HabitViewController())
-        habitViewController.modalPresentationStyle = .fullScreen
-        navigationController?.present(habitViewController, animated: true)
+        let habitViewController = HabitViewController()
+        habitViewController.delegate = self
+        let habitNavigationViewController = UINavigationController(rootViewController: habitViewController)
+        habitNavigationViewController.modalPresentationStyle = .fullScreen
+        navigationController?.present(habitNavigationViewController, animated: true)
     }
 
 }
 
 extension HabitsViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        HabitsStore.shared.habits.count + 1
-        18
+        HabitsStore.shared.habits.count + 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let progressCell: ProgressTableViewCell = tableView.dequeueReusableCell(withIdentifier: CellReuseIdentifiers.progress.rawValue) as! ProgressTableViewCell
-        let habitCell: HabitTableViewCell = tableView.dequeueReusableCell(withIdentifier: CellReuseIdentifiers.habit.rawValue) as! HabitTableViewCell
+        
         if indexPath.row == 0 {
+            let progressCell: ProgressTableViewCell = tableView.dequeueReusableCell(withIdentifier: CellReuseIdentifiers.progress.rawValue) as! ProgressTableViewCell
+            progressCell.update()
             return progressCell
         } else {
+            let habitCell: HabitTableViewCell = tableView.dequeueReusableCell(withIdentifier: CellReuseIdentifiers.habit.rawValue) as! HabitTableViewCell
+            habitCell.delegate = self
+            habitCell.update(habit: HabitsStore.shared.habits[indexPath.row - 1])
+            print(HabitsStore.shared.habits.count)
             return habitCell
         }
+        
+        
     }
     
     
@@ -84,6 +101,7 @@ extension HabitsViewController: UITableViewDelegate {
             print("Progress cell tapped")
         } else {
             print("Habit cell tapped")
+            navigationController?.pushViewController(HabitDetailsViewController(habitTapped: HabitsStore.shared.habits[indexPath.row - 1]), animated: true)
         }
     }
     

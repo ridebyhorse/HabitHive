@@ -7,7 +7,13 @@
 
 import UIKit
 
+protocol HabitViewControllerDelegate: AnyObject {
+    func didCreateNewHabit()
+}
+
 class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate {
+    
+    weak var delegate: HabitViewControllerDelegate?
     
     private lazy var dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -182,6 +188,8 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
         navigationController?.dismiss(animated: true) {
             print("Habit creating controller closed")
         }
+        delegate?.didCreateNewHabit()
+        
     }
     
     @objc private func timeSelected(_ sender: UIDatePicker) {
