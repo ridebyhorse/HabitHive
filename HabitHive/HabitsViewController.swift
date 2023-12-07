@@ -7,7 +7,7 @@
 
 import UIKit
 
-class HabitsViewController: UIViewController, HabitViewControllerDelegate, HabitTableViewCellDelegate {
+class HabitsViewController: UIViewController, HabitTableViewCellDelegate {
     
     fileprivate enum CellReuseIdentifiers: String {
         case progress = "ProgressReuse"
@@ -19,10 +19,6 @@ class HabitsViewController: UIViewController, HabitViewControllerDelegate, Habit
         
         return tableView
     }()
-    
-    func didCreateNewHabit() {
-        tableView.reloadData()
-    }
     
     func didTrackHabit() {
         tableView.reloadData()
@@ -38,6 +34,18 @@ class HabitsViewController: UIViewController, HabitViewControllerDelegate, Habit
         navigationItem.title = "Сегодня"
         navigationController?.navigationBar.prefersLargeTitles = true
 
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.navigationBar.prefersLargeTitles = true
+        tableView.reloadData()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        navigationController?.navigationBar.prefersLargeTitles = false
     }
     
     private func setup() {
@@ -58,11 +66,11 @@ class HabitsViewController: UIViewController, HabitViewControllerDelegate, Habit
         tableView.separatorStyle = .none
     }
     
-    @objc private func addHabitButtonTapped(_ sender: UIButton) {
+    @objc private func addHabitButtonTapped(_ sender: UIBarButtonItem) {
 
         print("Add habit button tapped")
         let habitViewController = HabitViewController()
-        habitViewController.delegate = self
+        habitViewController.navigationItem.title = "Создать"
         let habitNavigationViewController = UINavigationController(rootViewController: habitViewController)
         habitNavigationViewController.modalPresentationStyle = .fullScreen
         navigationController?.present(habitNavigationViewController, animated: true)
@@ -85,7 +93,6 @@ extension HabitsViewController: UITableViewDataSource {
             let habitCell: HabitTableViewCell = tableView.dequeueReusableCell(withIdentifier: CellReuseIdentifiers.habit.rawValue) as! HabitTableViewCell
             habitCell.delegate = self
             habitCell.update(habit: HabitsStore.shared.habits[indexPath.row - 1])
-            print(HabitsStore.shared.habits.count)
             return habitCell
         }
         

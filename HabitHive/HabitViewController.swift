@@ -7,13 +7,9 @@
 
 import UIKit
 
-protocol HabitViewControllerDelegate: AnyObject {
-    func didCreateNewHabit()
-}
-
 class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate {
     
-    weak var delegate: HabitViewControllerDelegate?
+    private weak var habitToEdit: Habit?
     
     private lazy var dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -99,6 +95,25 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
         return timePicker
     }()
     
+    private lazy var deleteHabitButton: UIButton = {
+        let deleteHabitButton = UIButton()
+        deleteHabitButton.setTitle("Удалить привычку", for: .normal)
+        deleteHabitButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .regular)
+        deleteHabitButton.setTitleColor(.sunrise, for: .normal)
+        deleteHabitButton.addTarget(self, action: #selector(deleteHabitButtonTapped), for: .touchUpInside)
+        
+        return deleteHabitButton
+    }()
+    
+    func updateDataToEdit(habit: Habit) {
+        habitToEdit = habit
+        nameTextField.text = habit.name
+        colorButton.backgroundColor = habit.color
+        settingTimeLabel.text = dateFormatter.string(from: habit.date)
+        timePicker.date = habit.date
+        
+    }
+    
     func colorPickerViewControllerDidSelectColor(_ viewController: UIColorPickerViewController) {
         colorButton.backgroundColor = viewController.selectedColor
     }
@@ -106,8 +121,7 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        navigationItem.title = "Создать"
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Отменить", style: .plain, target: self, action: #selector(cancelHabitCreatingButtonTapped))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Отменить", style: .plain, target: self, action: #selector(cancelButtonTapped))
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Сохранить", style: .plain, target: self, action: #selector(saveHabitButtonTapped))
         
         setup()
@@ -130,6 +144,7 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
         view.addSubview(timeDescriptionLabel)
         view.addSubview(settingTimeLabel)
         view.addSubview(timePicker)
+        view.addSubview(deleteHabitButton)
         
         for view in view.subviews {
             view.translatesAutoresizingMaskIntoConstraints = false
@@ -159,16 +174,31 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
             settingTimeLabel.trailingAnchor.constraint(equalTo: timeLabel.trailingAnchor),
             timePicker.topAnchor.constraint(equalTo: timeDescriptionLabel.bottomAnchor, constant: 6),
             timePicker.leadingAnchor.constraint(equalTo: timeDescriptionLabel.leadingAnchor),
-            timePicker.trailingAnchor.constraint(equalTo: settingTimeLabel.trailingAnchor)
+            timePicker.trailingAnchor.constraint(equalTo: settingTimeLabel.trailingAnchor),
+            deleteHabitButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            deleteHabitButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -18)
             
         ])
+        
+        if navigationItem.title == "Создать" {
+            deleteHabitButton.isHidden = true
+        } else {
+            deleteHabitButton.isHidden = false
+        }
     }
     
-    @objc private func cancelHabitCreatingButtonTapped(_ sender: UIBarButtonItem) {
-        print("Cancel habit creating button tapped")
-        navigationController?.dismiss(animated: true) {
+    @objc private func cancelButtonTapped(_ sender: UIBarButtonItem) {
+        if navigationItem.title == "Создать" {
+            print("Cancel habit creating button tapped")
+            navigationController?.dismiss(animated: true) {
+                print("Habit creating controller closed")
+            }
+        } else {
+            print("Cancel habit editing button tapped")
+            navigationController?.popViewController(animated: true)
             print("Habit creating controller closed")
         }
+        
     }
     
     @objc private func saveHabitButtonTapped(_ sender: UIBarButtonItem) {
@@ -182,13 +212,21 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
             return
         }
         guard let habitColor = colorButton.backgroundColor else { return }
-        let newHabit = Habit(name: habitName, date: timePicker.date, color: habitColor)
-        let habitStore = HabitsStore.shared
-        habitStore.habits.append(newHabit)
-        navigationController?.dismiss(animated: true) {
-            print("Habit creating controller closed")
+        
+        if navigationItem.title == "Создать" {
+            let newHabit = Habit(name: habitName, date: timePicker.date, color: habitColor)
+            let habitStore = HabitsStore.shared
+            habitStore.habits.append(newHabit)
+            navigationController?.dismiss(animated: true) {
+                print("Habit creating controller closed")
+            }
+        } else {
+            guard let habit = self.habitToEdit else { return }
+            guard let index = HabitsStore.shared.habits.firstIndex(of: habit) else { return }
+            HabitsStore.shared.habits[index] = Habit(name: habitName, date: timePicker.date, color: habitColor)
+            navigationController?.popToRootViewController(animated: true)
+            print("Habit editing controller closed")
         }
-        delegate?.didCreateNewHabit()
         
     }
     
@@ -201,6 +239,19 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
         guard let initialColor = sender.backgroundColor else { return }
         colorPicker.selectedColor = initialColor
         self.present(colorPicker, animated: true)
+    }
+    
+    @objc private func deleteHabitButtonTapped(_ sender: UIButton) {
+        print("Delete habit button tapped")
+        let alertController = UIAlertController(title: "Удалить привычку", message: "Вы хотите удалить привычку \(self.nameTextField.text ?? "")?", preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: "Отмена", style: .default))
+        alertController.addAction(UIAlertAction(title: "Удалить", style: .destructive, handler: {_ in
+            guard let habit = self.habitToEdit else { return }
+            guard let index = HabitsStore.shared.habits.firstIndex(of: habit) else { return }
+            HabitsStore.shared.habits.remove(at: index)
+            self.navigationController?.popToRootViewController(animated: true)
+        }))
+        self.present(alertController, animated: true)
     }
 
 }

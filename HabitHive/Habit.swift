@@ -92,4 +92,3 @@ extension Habit: Equatable {
         lhs.a == rhs.a
     }
 }
-//
