@@ -30,6 +30,7 @@ class HabitDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Править", style: .plain, target: self, action: #selector(editHabitButtonTapped))
         
         navigationController?.navigationBar.prefersLargeTitles = false
         title = habit.name
@@ -47,12 +48,6 @@ class HabitDetailsViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        navigationController?.navigationBar.prefersLargeTitles = true
-    }
-    
     private func setup() {
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -68,6 +63,14 @@ class HabitDetailsViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
     }
+    
+    @objc private func editHabitButtonTapped(_ sender: UIBarButtonItem) {
+        print("Edit habit button tapped")
+        let habitViewController = HabitViewController()
+        habitViewController.navigationItem.title = "Править"
+        habitViewController.updateDataToEdit(habit: habit)
+        navigationController?.pushViewController(habitViewController, animated: true)
+    }
 
 }
 
@@ -77,17 +80,22 @@ extension HabitDetailsViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellDetailReuseIdentifier)
-        if HabitsStore.shared.habit(habit, isTrackedIn: HabitsStore.shared.dates[indexPath.row]) {
-            cell!.accessoryType = .checkmark
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellDetailReuseIdentifier, for: indexPath)
+        
+        if HabitsStore.shared.habit(habit, isTrackedIn: HabitsStore.shared.dates.reversed()[indexPath.row]) {
+            cell.accessoryType = .checkmark
         }
         
-        var content = cell!.defaultContentConfiguration()
-        content.text = "\(dateFormatter.string(from: HabitsStore.shared.dates[indexPath.row]))"
-        cell!.contentConfiguration = content
-        return cell!
+        var content = cell.defaultContentConfiguration()
+        if let date = HabitsStore.shared.trackDateString(forIndex: (HabitsStore.shared.dates.count - indexPath.row - 1)) {
+            content.text = "\(date)"
+        }
+        
+        
+        cell.contentConfiguration = content
+        return cell
     }
-    
     
 }
 
